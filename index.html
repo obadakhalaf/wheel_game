@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <title>Diana & Yahya – Super Wheel AI Nursing Game</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f0f4ff, #e6ecf7);
+            font-family: "Segoe UI", Tahoma, Arial;
+            text-align: center;
+            direction: rtl;
+        }
+
+        .header {
+            margin-top: 25px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 70px;
+            position: relative;
+            background: #2563eb;
+            clip-path: polygon(50% 0%, 90% 20%, 90% 65%, 50% 100%, 10% 65%, 10% 20%);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+        }
+        .cross-vertical {
+            position: absolute;
+            top: 22px; left: 27px;
+            width: 6px; height: 25px;
+            background: #ffffff;
+            border-radius: 2px;
+        }
+        .cross-horizontal {
+            position: absolute;
+            top: 34px; left: 18px;
+            width: 25px; height: 6px;
+            background: #ffffff;
+            border-radius: 2px;
+        }
+        .ecg-line {
+            position: absolute;
+            width: 40px;
+            height: 18px;
+            left: 10px;
+            top: 45px;
+            background: transparent;
+            border-bottom: 3px solid #fff;
+            clip-path: polygon(0% 70%, 25% 70%, 32% 10%, 40% 90%, 55% 30%, 65% 80%, 70% 55%, 100% 55%, 100% 75%, 0% 75%);
+        }
+
+        h1 {
+            font-size: 30px;
+            margin: 0;
+            font-weight: 800;
+            color: #111827;
+        }
+        .subtitle {
+            margin-bottom: 20px;
+            color: #444;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .game-container {
+            max-width: 700px;
+            margin: 0 auto 40px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
+
+        .wheel-wrapper {
+            position: relative;
+            width: 400px;
+            height: 430px;
+            margin: 0 auto;
+        }
+
+        .pointer {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 18px solid transparent;
+            border-right: 18px solid transparent;
+            border-top: 30px solid #111;
+            z-index: 999;
+        }
+
+        #wheel {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+        }
+
+        #spinBtn {
+            margin-top: 25px;
+            padding: 12px 30px;
+            font-size: 18px;
+            border-radius: 999px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+            font-weight: 700;
+            box-shadow: 0 6px 14px rgba(37,99,235,0.4);
+        }
+        #spinBtn:hover { background: #1d4ed8; }
+        #spinBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        #timer {
+            margin-top: 15px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #b91c1c;
+        }
+
+        #resultBox {
+            margin: 25px auto 10px auto;
+            padding: 18px;
+            background: #fafafa;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            max-width: 550px;
+            text-align: right;
+            line-height: 1.8;
+        }
+
+        .question-text {
+            font-weight: 800;
+            color: #111;
+        }
+        .answer-text {
+            font-weight: 800;
+            color: #047857;
+        }
+        .hint {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .hidden { display: none; }
+
+        /* دوران للفئات الداخلية فقط (مش للعجلة الرئيسية) */
+        .spinning {
+            animation: spin 4s ease-out;
+        }
+        @keyframes spin {
+            from { transform: translateX(-50%) rotate(0deg); }
+            to   { transform: translateX(-50%) rotate(2880deg); } /* 8 لفات */
+        }
+
+        .options-container {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .option-btn {
+            width: 100%;
+            text-align: right;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            cursor: pointer;
+            font-size: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+        }
+        .option-btn:hover {
+            background: #f3f4f6;
+            transform: translateY(-1px);
+        }
+        .option-btn.disabled {
+            cursor: default;
+            opacity: 0.9;
+        }
+        .option-btn.correct {
+            background: #dcfce7;
+            border-color: #22c55e;
+            color: #14532d;
+            font-weight: 700;
+        }
+        .option-btn.wrong {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #7f1d1d;
+            font-weight: 700;
+        }
+        .option-status {
+            margin-left: 8px;
+            font-size: 16px;
+        }
+
+        .action-btn {
+            margin-top: 12px;
+            padding: 8px 18px;
+            border-radius: 999px;
+            border: none;
+            background: #10b981;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .action-btn:hover {
+            background: #059669;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <div class="logo">
+        <div class="cross-vertical"></div>
+        <div class="cross-horizontal"></div>
+        <div class="ecg-line"></div>
+    </div>
+
+    <div>
+        <h1>Diana & Yahya</h1>
+        <div class="subtitle">AI in Nursing – Questions, Info, Challenges, Riddles & Real or Fake 🎡</div>
+    </div>
+</div>
+
+<div class="game-container">
+    <div class="wheel-wrapper">
+        <div class="pointer"></div>
+        <canvas id="wheel" width="400" height="400"></canvas>
+    </div>
+
+    <button id="spinBtn">لف العجلة</button>
+
+    <div id="timer" class="hidden"></div>
+
+    <div id="resultBox" class="hidden"></div>
+</div>
+
+<!-- 🔊 ملفات الصوت (اختيارية) -->
+<audio id="snd-spin"   src="spin.mp3"   preload="auto"></audio>
+<audio id="snd-correct" src="correct.mp3" preload="auto"></audio>
+<audio id="snd-wrong"   src="wrong.mp3"   preload="auto"></audio>
+<audio id="snd-timeup"  src="timeup.mp3"  preload="auto"></audio>
+
+<script>
+/* ===================== DATA ===================== */
+
+const mainOptions = [
+    "سؤال",
+    "معلومة",
+    "تحدي",
+    "لغز",
+    "Real or Fake",
+    "Spin again"
+];
+
+const questions = [
+    {
+        q: "ما أهم فائدة للذكاء الاصطناعي في التمريض؟",
+        options: [
+            "تقليل عدد الممرضين",
+            "تحسين دقة التقييم وسرعة اتخاذ القرار",
+            "استبدال الأطباء",
+            "إلغاء الحاجة لملفات المرضى"
+        ],
+        correctIndex: 1
+    },
+    {
+        q: "كيف يساعد الذكاء الاصطناعي في مراقبة المرضى؟",
+        options: [
+            "عبر تحليل العلامات الحيوية بشكل مستمر",
+            "عبر زيادة عدد الزيارات البشرية",
+            "عبر تقليل الحاجة للأجهزة",
+            "عبر إيقاف أجهزة المراقبة"
+        ],
+        correctIndex: 0
+    },
+    {
+        q: "ما دور الذكاء الاصطناعي في تقليل الأخطاء الدوائية؟",
+        options: [
+            "إلغاء دور الصيدلية",
+            "إنشاء وصفات دوائية عشوائية",
+            "تنبيه الممرض للجرعات الخاطئة والتداخلات",
+            "إعطاء الدواء بدل الممرض"
+        ],
+        correctIndex: 2
+    },
+    {
+        q: "كيف يساعد AI في الطوارئ (ER)؟",
+        options: [
+            "تأخير فرز المرضى",
+            "فرز المرضى حسب الخطورة وتحديد الحالات الحرجة",
+            "منع دخول المرضى",
+            "استبدال الإسعاف"
+        ],
+        correctIndex: 1
+    },
+    {
+        q: "في العناية المركزة، ماذا يقدم الذكاء الاصطناعي؟",
+        options: [
+            "تشخيص نهائي بدون طبيب",
+            "توقع تدهور المريض قبل حدوثه",
+            "إيقاف الأجهزة تلقائيًا",
+            "تعليم الأطباء الجدد"
+        ],
+        correctIndex: 1
+    },
+    {
+        q: "كيف ساهم الذكاء الاصطناعي في تطوير مهنة التمريض؟",
+        options: [
+            "زيادة الضغط على الممرض",
+            "تقليل التدريب",
+            "توفير وقت أكبر للعناية المباشرة بالمرضى",
+            "إلغاء دور التواصل"
+        ],
+        correctIndex: 2
+    },
+    {
+        q: "ما دور الروبوتات الذكية في التمريض؟",
+        options: [
+            "تقييم الطبيب",
+            "نقل الأدوية والمواد وتعقيم الغرف",
+            "كتابة الأبحاث",
+            "استبدال كل الموظفين"
+        ],
+        correctIndex: 1
+    },
+    {
+        q: "كيف يُستخدم AI في تعليم وتدريب الممرضين؟",
+        options: [
+            "بإعطائهم امتحانات صعبة فقط",
+            "باستخدام محاكاة واقعية ومرضى افتراضيين",
+            "منع التدريب العملي",
+            "استبدال المختبرات"
+        ],
+        correctIndex: 1
+    },
+    {
+        q: "كيف يساعد الذكاء الاصطناعي في رعاية المرضى في البيت؟",
+        options: [
+            "مراقبة سلوك المرضى وتنبيه الممرض عند أي خطر",
+            "منع المرضى من التواصل",
+            "تعطيل الأجهزة",
+            "تقليل عدد الأشخاص المؤهلين"
+        ],
+        correctIndex: 0
+    },
+    {
+        q: "ما أهم تحدٍّ يواجه استخدام الذكاء الاصطناعي بالتمريض؟",
+        options: [
+            "سهل ومجاني دائمًا",
+            "لا يحتاج بيانات",
+            "حماية خصوصية المرضى",
+            "يعمل بدون تدريب"
+        ],
+        correctIndex: 2
+    }
+];
+
+const infoItems = [
+    "1️⃣ البداية: أول نظام إلكتروني بالتمريض كان عام 1960 بأمريكا في مستشفى LDS بيوتا – نظام “HELP” لدعم القرارات.",
+    "2️⃣ أول جهاز: أول جهاز مراقبة ذكي للعلامات الحيوية ظهر بالستينيات – راقب النبض والتنفس تلقائياً.",
+    "3️⃣ منع الأخطاء: أنظمة AI تتحقق من 5 حقوق الدواء: الدواء، الجرعة، المريض، الوقت، والطريقة الصحيحة.",
+    "4️⃣ التنبؤ المبكر: AI يتنبأ بتدهور المريض قبل 6–12 ساعة من حدوثه – ينقذ الأرواح.",
+    "5️⃣ الأسرّة الذكية: تغير وضعية المريض تلقائياً وتمنع السقوط – تقلل الحوادث 30–40%.",
+    "6️⃣ مضخات IV الذكية: تمنع الجرعات الزائدة وتُنبه للمشاكل – قللت الأخطاء 50%.",
+    "7️⃣ الروبوتات: تنقل الأدوية والعينات وترفع المرضى – تحمي 52% من الممرضات من إصابات الظهر.",
+    "8️⃣ توفير الوقت: الأنظمة الذكية توفر 30–40% من وقت التوثيق للممرضة.",
+    "9️⃣ AI مساعد فقط: التكنولوجيا تساعد لكن لا تستبدل التعاطف والإنسانية والحكم السريري.",
+    "🔟 المستقبل: ممرضة مدعومة بتكنولوجيا ذكية = أفضل رعاية صحية ممكنة! 💙"
+];
+
+const riddles = [
+    { riddle: "جهاز صغير على معصمك، يراقب قلبك ويُنبهك للخطر – من أنا؟", answer: "الساعة الذكية" },
+    { riddle: "ملف إلكتروني فيه كل تاريخ المريض، يوفر الوقت والورق – من أنا؟", answer: "السجل الطبي الإلكتروني" },
+    { riddle: "روبوت يتجول بالمستشفى، ينقل الأدوية والعينات بدون تعب – من أنا؟", answer: "روبوت النقل الطبي" },
+    { riddle: "عين ساهرة بغرفة المريض، تُنبه الممرضة فوراً إذا سقط المريض – من أنا؟", answer: "كاميرا المراقبة الذكية" },
+    { riddle: "أقرأ آلاف التحاليل بثواني وأساعد بالقرار، لكن لا أستطيع مسك يد المريض – من أنا؟", answer: "الذكاء الاصطناعي" },
+    { riddle: "سرير ذكي يُغير وضعية المريض تلقائياً لمنع شيء خطير – ماذا يمنع؟", answer: "تقرحات الفراش" },
+    { riddle: "نظام يمسح الباركود على الدواء وسوار المريض، يتأكد من 5 أشياء صحيحة قبل إعطاء الدواء – من أنا؟", answer: "نظام الباركود الذكي للأدوية" },
+    { riddle: "جهاز بجانب السرير يقيس الضغط والنبض والحرارة والأكسجين تلقائياً، ويرسل النتائج مباشرة للممرضة – من أنا؟", answer: "جهاز مراقبة العلامات الحيوية (Vital Signs Monitor)" },
+    { riddle: "مضخة ذكية تعطي الدواء الوريدي بجرعات دقيقة جداً، تُنبه إذا انسد الخط أو انتهى الدواء، وتحمي المريض من الجرعات الزائدة – من أنا؟", answer: "مضخة التسريب الذكية (Smart IV Pump)" },
+    { riddle: "تطبيق على جوال الممرضة يترجم كلام المريض لأي لغة فوراً، يكسر حاجز اللغة ويساعد بالتواصل – من أنا؟", answer: "تطبيق الترجمة الفورية الطبية" }
+];
+
+const challenges = [
+    "سمّي 3 أجهزة ذكية موجودة بحياتنا اليومية.",
+    "سمّي وين ممكن نلاقي الذكاء الاصطناعي بحياتنا؟ (3 أمثلة).",
+    "سمّي 3 معلومات صحية تقيسها الساعة الذكية.",
+    "سمّي 3 فوائد لاستخدام التكنولوجيا بالمستشفى.",
+    "سمّي 3 تطبيقات صحية على الموبايل.",
+    "سمّي 3 أشياء الروبوت ممكن يساعد فيها.",
+    "سمّي 3 معلومات موجودة بالسجل الطبي.",
+    "سمّي 3 أشياء التكنولوجيا ما بتقدر تستبدلها.",
+    "سمّي 3 أماكن بالمستشفى.",
+    "سمّي 3 أجهزة طبية بتعرفها."
+];
+
+const realFakeItems = [
+    { statement: "يوجد سرير ذكي يغير وضعية المريض تلقائياً لمنع تقرحات الفراش.", isReal: true },
+    { statement: "الذكاء الاصطناعي يمكنه استبدال الممرضة بالكامل في رعاية المرضى.", isReal: false },
+    { statement: "كاميرات ذكية في غرف المرضى تكتشف السقوط وترسل إنذار فوري.", isReal: true },
+    { statement: "AI يستطيع قراءة أفكار المريض ومعرفة ما يحتاجه.", isReal: false },
+    { statement: "نظام AI يتنبأ بتدهور حالة المريض قبل ساعات من حدوثه.", isReal: true },
+    { statement: "الذكاء الاصطناعي يمكنه الشعور بالتعاطف مثل الإنسان تماماً.", isReal: false },
+    { statement: "روبوتات تنقل الأدوية والمستلزمات الطبية داخل المستشفى.", isReal: true },
+    { statement: "نظام ذكي يمنع الأخطاء الدوائية بتنبيه الممرضة للجرعة الخاطئة.", isReal: true },
+    { statement: "روبوت يمكنه إجراء عملية جراحية معقدة بدون طبيب.", isReal: false },
+    { statement: "ساعات ذكية تكتشف عدم انتظام ضربات القلب وترسل تنبيه فوري.", isReal: true }
+];
+
+const sliceColors = [
+    "#F97373", "#F9A826", "#34D399",
+    "#3B82F6", "#8B5CF6", "#EC4899"
+];
+
+/* ===================== AUDIO ===================== */
+
+const sndSpin    = document.getElementById("snd-spin");
+const sndCorrect = document.getElementById("snd-correct");
+const sndWrong   = document.getElementById("snd-wrong");
+const sndTimeup  = document.getElementById("snd-timeup");
+
+let audioCtx = null;
+
+function getAudioCtx() {
+    if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AC();
+    }
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    return audioCtx;
+}
+
+function fallbackBeep(freq = 440, duration = 200) {
+    try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration / 1000);
+        osc.start();
+        osc.stop(ctx.currentTime + duration / 1000);
+    } catch (_) {}
+}
+
+function playAudioSafe(audioEl, fallbackFreq) {
+    if (!audioEl || !audioEl.src) {
+        fallbackBeep(fallbackFreq);
+        return;
+    }
+    try {
+        audioEl.currentTime = 0;
+        const p = audioEl.play();
+        if (p && p.catch) p.catch(() => fallbackBeep(fallbackFreq));
+    } catch (_) {
+        fallbackBeep(fallbackFreq);
+    }
+}
+
+function playSpinSound()    { playAudioSafe(sndSpin,   500); }
+function playCorrectSound() { playAudioSafe(sndCorrect,900); }
+function playWrongSound()   { playAudioSafe(sndWrong,  220); }
+function playTimeUpSound()  { playAudioSafe(sndTimeup, 400); }
+
+/* ===================== CANVAS & GLOBALS ===================== */
+
+const canvas   = document.getElementById("wheel");
+const ctx      = canvas.getContext("2d");
+const spinBtn  = document.getElementById("spinBtn");
+const resultBox= document.getElementById("resultBox");
+const timerBox = document.getElementById("timer");
+
+let countdownInterval = null;
+
+/* زاوية دوران العجلة الرئيسية (راديان) */
+let mainRotation = 0;
+
+/* ===================== DRAW FUNCTIONS ===================== */
+
+/* رسم العجلة الرئيسية مع دوران mainRotation وضبط النصوص */
+function drawMainWheel() {
+    const options = mainOptions;
+    const count = options.length;
+    const arc = (Math.PI * 2) / count;
+
+    ctx.clearRect(0,0,400,400);
+    ctx.save();
+    ctx.translate(200,200);
+    ctx.rotate(mainRotation);
+
+    for (let i=0;i<count;i++) {
+        const start = -Math.PI/2 + i*arc; // تبدأ من أعلى العجلة
+
+        ctx.beginPath();
+        ctx.moveTo(0,0);
+        ctx.arc(0,0,200,start,start+arc);
+        ctx.closePath();
+        ctx.fillStyle = sliceColors[i % sliceColors.length];
+        ctx.fill();
+
+        ctx.save();
+        ctx.rotate(start + arc/2);
+        ctx.fillStyle = "#111";
+        ctx.font = "bold 16px Tahoma";
+        ctx.textAlign = "center";
+        let text = options[i];
+        if (text.length > 16) text = text.slice(0,14)+"…";
+        ctx.fillText(text,130,8);
+        ctx.restore();
+    }
+
+    ctx.restore();
+}
+
+/* رسم عجلة للفئات الداخلية بدون دوران متحرك */
+function drawCategoryWheel(options) {
+    const count = options.length;
+    const arc = (Math.PI * 2) / count;
+
+    ctx.clearRect(0,0,400,400);
+    ctx.save();
+    ctx.translate(200,200);
+
+    for (let i=0;i<count;i++) {
+        const start = -Math.PI/2 + i*arc;
+
+        ctx.beginPath();
+        ctx.moveTo(0,0);
+        ctx.arc(0,0,200,start,start+arc);
+        ctx.closePath();
+        ctx.fillStyle = sliceColors[i % sliceColors.length];
+        ctx.fill();
+
+        ctx.save();
+        ctx.rotate(start + arc/2);
+        ctx.fillStyle = "#111";
+        ctx.font = "bold 16px Tahoma";
+        ctx.textAlign = "center";
+        let text = options[i];
+        if (text.length > 16) text = text.slice(0,14)+"…";
+        ctx.fillText(text,130,8);
+        ctx.restore();
+    }
+
+    ctx.restore();
+}
+
+/* أول رسم للعجلة الرئيسية */
+drawMainWheel();
+
+/* ===================== HELPERS ===================== */
+
+function pickRandomIndex(arr) {
+    return Math.floor(Math.random() * arr.length);
+}
+
+function clearCountdown() {
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+    timerBox.classList.add("hidden");
+}
+
+function startCountdown(seconds,onTick,onEnd) {
+    clearCountdown();
+    let remaining = seconds;
+    timerBox.classList.remove("hidden");
+    onTick(remaining);
+
+    countdownInterval = setInterval(()=>{
+        remaining--;
+        if (remaining>=0) onTick(remaining);
+        if (remaining<=0) {
+            clearCountdown();
+            if (onEnd) onEnd();
+        }
+    },1000);
+}
+
+/* أنيميشن دوران العجلة الرئيسية بحيث السهم يوقف على خانة معيّنة */
+function animateMainRotation(from,to,duration,done) {
+    playSpinSound();
+    spinBtn.disabled = true;
+    let startTime = null;
+
+    function step(ts) {
+        if (!startTime) startTime = ts;
+        let progress = (ts - startTime) / duration;
+        if (progress > 1) progress = 1;
+        const eased = 1 - Math.pow(1-progress,3); // easeOut
+        mainRotation = from + (to-from)*eased;
+        drawMainWheel();
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        } else {
+            spinBtn.disabled = false;
+            playTimeUpSound();
+            done();
+        }
+    }
+    requestAnimationFrame(step);
+}
+
+/* دوران بسيط للفئات الداخلية (مش مهم يطابق السهم) */
+function spinWheelCategory(callback) {
+    clearCountdown();
+    spinBtn.disabled = true;
+    playSpinSound();
+    canvas.classList.add("spinning");
+
+    setTimeout(()=>{
+        canvas.classList.remove("spinning");
+        spinBtn.disabled = false;
+        playTimeUpSound();
+        callback();
+    },4000);
+}
+
+function resetToMain() {
+    setTimeout(()=>{
+        mainRotation = 0;
+        canvas.style.transform = "translateX(-50%)";
+        canvas.style.transition = "none";
+        drawMainWheel();
+        spinBtn.textContent = "لف العجلة";
+        spinBtn.onclick = spinMain;
+        resultBox.innerHTML += `<p class="hint">🔁 اضغطي "لف العجلة" للرجوع للعجلة الأساسية.</p>`;
+    },600);
+}
+
+/* ===================== MAIN WHEEL LOGIC ===================== */
+
+spinBtn.onclick = spinMain;
+
+function spinMain() {
+    clearCountdown();
+
+    const count = mainOptions.length;
+    const arc = (Math.PI*2) / count;
+
+    const index = pickRandomIndex(mainOptions);
+
+    // زاوية الهدف بحيث مركز الشريحة المختارة يوصل للأعلى (تحت السهم)
+    const targetBase = - (index*arc + arc/2);    // يجعل الشريحة المختارة تحت السهم
+    const fullTurns = 4;                         // عدد اللفات قبل الوصول
+    const target = targetBase + fullTurns*2*Math.PI;
+
+    animateMainRotation(mainRotation, target, 4000, ()=>{
+        const result = mainOptions[index];
+
+        if (result === "سؤال") {
+            enterQuestionCategory();
+        } else if (result === "معلومة") {
+            enterInfoCategory();
+        } else if (result === "تحدي") {
+            enterChallengeCategory();
+        } else if (result === "لغز") {
+            enterRiddleCategory();
+        } else if (result === "Real or Fake") {
+            enterRealFakeCategory();
+        } else if (result === "Spin again") {
+            resultBox.classList.remove("hidden");
+            resultBox.innerHTML = `<h3>🎯 النتيجة: Spin again</h3><p class="hint">🔁 العجلة رح ترجع تلف مرة ثانية.</p>`;
+            setTimeout(spinMain,800);
+        }
+    });
+}
+
+/* ===================== الأسئلة ===================== */
+
+function enterQuestionCategory() {
+    canvas.style.transition = "";
+    canvas.style.transform  = "translateX(-50%)";
+    drawCategoryWheel(questions.map((_,i)=>`سؤال ${i+1}`));
+    resultBox.classList.remove("hidden");
+    resultBox.innerHTML = `
+        <h3>🎯 النتيجة: فئة الأسئلة</h3>
+        <p>اضغطي "لف العجلة (أسئلة)" لاختيار سؤال.</p>
+    `;
+    clearCountdown();
+    spinBtn.textContent = "لف العجلة (أسئلة)";
+    spinBtn.onclick = spinQuestionWheel;
+}
+
+function spinQuestionWheel() {
+    spinWheelCategory(()=>{
+        const qObj = questions[pickRandomIndex(questions)];
+        showQuestion(qObj);
+    });
+}
+
+function showQuestion(qObj) {
+    let optionsHtml = '<div class="options-container">';
+    qObj.options.forEach((opt,i)=>{
+        optionsHtml += `
+            <button class="option-btn" data-index="${i}">
+                <span>${opt}</span>
+                <span class="option-status"></span>
+            </button>`;
+    });
+    optionsHtml += '</div>';
+
+    resultBox.innerHTML = `
+        <h3>❓ السؤال</h3>
+        <p class="question-text">${qObj.q}</p>
+        ${optionsHtml}
+        <p class="hint">لديك 20 ثانية لاختيار الإجابة الصحيحة.</p>
+    `;
+
+    let answered = false;
+
+    startCountdown(
+        20,
+        sec => { timerBox.textContent = `⏳ الوقت المتبقي: ${sec} ثانية`; },
+        ()=>{
+            if (answered) return;
+            answered = true;
+            playTimeUpSound();
+            revealCorrectAnswer(qObj,null,true);
+            resetToMain();
+        }
+    );
+
+    attachMCQHandlers(qObj, ()=>{
+        answered = true;
+        clearCountdown();
+        resetToMain();
+    });
+}
+
+function attachMCQHandlers(qObj,onFinish) {
+    const buttons = Array.from(document.querySelectorAll(".option-btn"));
+    buttons.forEach(btn=>{
+        btn.addEventListener("click",()=>{
+            if (btn.classList.contains("disabled")) return;
+            const chosenIndex = parseInt(btn.getAttribute("data-index"),10);
+            buttons.forEach(b=>b.classList.add("disabled"));
+            const isCorrect = (chosenIndex === qObj.correctIndex);
+            if (isCorrect) playCorrectSound(); else playWrongSound();
+            revealCorrectAnswer(qObj,chosenIndex,false);
+            if (onFinish) onFinish();
+        });
+    });
+}
+
+function revealCorrectAnswer(qObj,chosenIndex,isTimeUp) {
+    const buttons = Array.from(document.querySelectorAll(".option-btn"));
+
+    buttons.forEach((b,i)=>{
+        const statusSpan = b.querySelector(".option-status");
+        if (i === qObj.correctIndex) {
+            b.classList.add("correct");
+            statusSpan.textContent = "✅";
+        } else if (chosenIndex !== null && i === chosenIndex && i !== qObj.correctIndex) {
+            b.classList.add("wrong");
+            statusSpan.textContent = "❌";
+        }
+    });
+
+    if (isTimeUp) {
+        resultBox.innerHTML += `<p class="hint" style="color:#b91c1c;font-weight:bold;">⏰ انتهى الوقت! تم تمييز الإجابة الصحيحة باللون الأخضر.</p>`;
+    }
+}
+
+/* ===================== المعلومات ===================== */
+
+function enterInfoCategory() {
+    canvas.style.transition = "";
+    canvas.style.transform  = "translateX(-50%)";
+    drawCategoryWheel(infoItems.map((_,i)=>`معلومة ${i+1}`));
+    resultBox.classList.remove("hidden");
+    resultBox.innerHTML = `
+        <h3>🎯 النتيجة: فئة المعلومات</h3>
+        <p>اضغطي "لف العجلة (معلومات)" لاختيار معلومة.</p>
+    `;
+    clearCountdown();
+    spinBtn.textContent = "لف العجلة (معلومات)";
+    spinBtn.onclick = spinInfoWheel;
+}
+
+function spinInfoWheel() {
+    spinWheelCategory(()=>{
+        const info = infoItems[pickRandomIndex(infoItems)];
+        clearCountdown();
+        resultBox.innerHTML = `
+            <h3>💡 معلومة تمريضية – AI</h3>
+            <p class="question-text">${info}</p>
+            <button class="action-btn" onclick="backToMainFromButton()">رجوع للعجلة</button>
+        `;
+    });
+}
+
+function backToMainFromButton() {
+    resultBox.innerHTML += `<p class="hint">تم الرجوع للعجلة.</p>`;
+    resetToMain();
+}
+
+/* ===================== الألغاز ===================== */
+
+function enterRiddleCategory() {
+    canvas.style.transition = "";
+    canvas.style.transform  = "translateX(-50%)";
+    drawCategoryWheel(riddles.map((_,i)=>`لغز ${i+1}`));
+    resultBox.classList.remove("hidden");
+    resultBox.innerHTML = `
+        <h3>🎯 النتيجة: فئة الألغاز</h3>
+        <p>اضغطي "لف العجلة (ألغاز)" لاختيار لغز.</p>
+    `;
+    clearCountdown();
+    spinBtn.textContent = "لف العجلة (ألغاز)";
+    spinBtn.onclick = spinRiddleWheel;
+}
+
+function spinRiddleWheel() {
+    spinWheelCategory(()=>{
+        const rObj = riddles[pickRandomIndex(riddles)];
+        showRiddle(rObj);
+    });
+}
+
+function showRiddle(rObj) {
+    resultBox.innerHTML = `
+        <h3>🧩 اللغز</h3>
+        <p class="question-text">${rObj.riddle}</p>
+        <p class="hint">لديك 20 ثانية للتفكير قبل ظهور الإجابة.</p>
+    `;
+
+    startCountdown(
+        20,
+        sec => { timerBox.textContent = `⏳ الوقت المتبقي: ${sec} ثانية`; },
+        ()=>{
+            playTimeUpSound();
+            resultBox.innerHTML += `
+                <p>✅ الإجابة:</p>
+                <p class="answer-text">${rObj.answer}</p>
+            `;
+            resetToMain();
+        }
+    );
+}
+
+/* ===================== التحديات ===================== */
+
+function enterChallengeCategory() {
+    canvas.style.transition = "";
+    canvas.style.transform  = "translateX(-50%)";
+    drawCategoryWheel(challenges.map((_,i)=>`تحدي ${i+1}`));
+    resultBox.classList.remove("hidden");
+    resultBox.innerHTML = `
+        <h3>🎯 النتيجة: فئة التحديات</h3>
+        <p>اضغطي "لف العجلة (تحديات)" لاختيار تحدّي.</p>
+    `;
+    clearCountdown();
+    spinBtn.textContent = "لف العجلة (تحديات)";
+    spinBtn.onclick = spinChallengeWheel;
+}
+
+function spinChallengeWheel() {
+    spinWheelCategory(()=>{
+        const chText = challenges[pickRandomIndex(challenges)];
+        showChallenge(chText);
+    });
+}
+
+function showChallenge(chText) {
+    resultBox.innerHTML = `
+        <h3>🎭 التحدي</h3>
+        <p class="question-text">${chText}</p>
+        <p class="hint">لديك 25 ثانية لتنفيذ التحدي.</p>
+        <button class="action-btn" id="finishChallengeBtn">أنهيت التحدي – رجوع للعجلة</button>
+    `;
+
+    startCountdown(
+        25,
+        sec => { timerBox.textContent = `⏳ الوقت المتبقي: ${sec} ثانية`; },
+        ()=>{
+            playTimeUpSound();
+            resultBox.innerHTML += `<p style="color:#b91c1c;font-weight:bold;">⏰ انتهى وقت التحدي!</p>`;
+            resetToMain();
+        }
+    );
+
+    document.getElementById("finishChallengeBtn").onclick = ()=>{
+        clearCountdown();
+        resultBox.innerHTML += `<p class="hint">✅ تم إنهاء التحدي قبل انتهاء الوقت.</p>`;
+        resetToMain();
+    };
+}
+
+/* ===================== Real or Fake ===================== */
+
+function enterRealFakeCategory() {
+    canvas.style.transition = "";
+    canvas.style.transform  = "translateX(-50%)";
+    drawCategoryWheel(realFakeItems.map((_,i)=>`RF ${i+1}`));
+    resultBox.classList.remove("hidden");
+    resultBox.innerHTML = `
+        <h3>🎯 النتيجة: Real or Fake</h3>
+        <p>اضغطي "لف العجلة (Real or Fake)" لاختيار جملة.</p>
+    `;
+    clearCountdown();
+    spinBtn.textContent = "لف العجلة (Real or Fake)";
+    spinBtn.onclick = spinRealFakeWheel;
+}
+
+function spinRealFakeWheel() {
+    spinWheelCategory(()=>{
+        const item = realFakeItems[pickRandomIndex(realFakeItems)];
+        showRealFake(item);
+    });
+}
+
+function showRealFake(item) {
+    resultBox.innerHTML = `
+        <h3>🔍 Real or Fake</h3>
+        <p class="question-text">${item.statement}</p>
+        <div style="margin-top:12px; display:flex; gap:10px; justify-content:flex-start;">
+            <button id="realBtn" class="action-btn" style="background:#16a34a;">Real / حقيقي</button>
+            <button id="fakeBtn" class="action-btn" style="background:#ef4444;">Fake / مزيف</button>
+        </div>
+        <p class="hint">لديك 20 ثانية للاختيار.</p>
+    `;
+
+    let answered = false;
+
+    startCountdown(
+        20,
+        sec => { timerBox.textContent = `⏳ الوقت المتبقي: ${sec} ثانية`; },
+        ()=>{
+            if (answered) return;
+            answered = true;
+            playTimeUpSound();
+            resultBox.innerHTML += `<p style="color:#b91c1c;font-weight:bold;">⏰ انتهى الوقت! الجملة كانت: <span class="answer-text">${item.isReal ? "حقيقية" : "مزيفة"}</span></p>`;
+            resetToMain();
+        }
+    );
+
+    const realBtn = document.getElementById("realBtn");
+    const fakeBtn = document.getElementById("fakeBtn");
+
+    function disableButtons() {
+        realBtn.disabled = true;
+        fakeBtn.disabled = true;
+        realBtn.style.opacity = 0.8;
+        fakeBtn.style.opacity = 0.8;
+    }
+
+    realBtn.onclick = ()=>{
+        if (answered) return;
+        answered = true;
+        clearCountdown();
+
+        if (item.isReal) {
+            playCorrectSound();
+            resultBox.innerHTML += `<p class="answer-text">✔️ صحيح! الجملة حقيقية.</p>`;
+        } else {
+            playWrongSound();
+            resultBox.innerHTML += `<p style="color:#b91c1c;font-weight:bold;">❌ خطأ، الجملة مزيفة.</p>`;
+        }
+        disableButtons();
+        resetToMain();
+    };
+
+    fakeBtn.onclick = ()=>{
+        if (answered) return;
+        answered = true;
+        clearCountdown();
+
+        if (!item.isReal) {
+            playCorrectSound();
+            resultBox.innerHTML += `<p class="answer-text">✔️ صحيح! الجملة مزيفة.</p>`;
+        } else {
+            playWrongSound();
+            resultBox.innerHTML += `<p style="color:#b91c1c;font-weight:bold;">❌ خطأ، الجملة حقيقية.</p>`;
+        }
+        disableButtons();
+        resetToMain();
+    };
+}
+</script>
+
+</body>
+</html>
